@@ -34,7 +34,6 @@ while True:
     stringtime = subprocess.check_output(['date', '+%Y-%m-%d %H:%M'])
     stringtime = stringtime.decode("utf-8")
 
-
     # get the percentage of the year that has passed
     date = datetime.now()
     startofyear = datetime(date.year, 1, 1)
