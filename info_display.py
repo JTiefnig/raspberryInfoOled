@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import subprocess
+import psutil
+import netifaces as ni
 from time import sleep
 from datetime import datetime
 import busio
@@ -14,25 +15,22 @@ while True:
 
     # get wifi info
     # get ip address
-    ip = subprocess.check_output(['hostname', '-I'])
-    ip = ip.decode("utf-8")
-    # get ssid
-    ssid = subprocess.check_output(['iwgetid', '-r'])
-    ssid = ssid.decode("utf-8")
+    ip = "not connected"
+    ssid = ""
 
-    # get cpu info
-    # get cpu temperature
-    cputemp = subprocess.check_output(['vcgencmd', 'measure_temp'])
-    cputemp = cputemp.decode("utf-8")
-    cputemp = cputemp[5:9] + 'C'
-    # get cpu usage
-    cpu = subprocess.check_output(['top', '-bn1'])
-    cpu = cpu.decode("utf-8")
-    cpu = cpu[cpu.find('Cpu(s):')+7:cpu.find('Cpu(s):')+12] + '%'
+    try:
+        ip = ni.ifaddresses('wlan0')[ni.AF_INET][0]['addr']
+        ssid = ni.ifaddresses('wlan0')[ni.AF_INET][0]['broadcast']
+    except:
+        pass
 
-    # get date time in format: 2019-01-01 00:00:00
-    stringtime = subprocess.check_output(['date', '+%Y-%m-%d %H:%M'])
-    stringtime = stringtime.decode("utf-8")
+    cpu = psutil.cpu_percent()
+
+    cpu_temp = psutil.sensors_temperatures()
+    cpu_temp = cpu_temp['cpu_thermal'][0][1]
+
+    # get date and time from datetime DD-MM-YYYY HH:MN
+    stringtime = datetime.now().strftime("%d-%m-%Y %H:%M")
 
     # get the percentage of the year that has passed
     date = datetime.now()
@@ -43,14 +41,12 @@ while True:
     yearprogress = round(yearprogress * 100, 2)
     yearprogress = str(yearprogress) + '%'
 
-    # get hostname
-    hostname = subprocess.check_output(['hostname'])
-    hostname = hostname.decode("utf-8")
-
     # USE oled.text("Hello {}".format(i), 1) function to print out information
     oled.text(stringtime, 1)
     oled.text(ssid, 2)
     oled.text("IP:" + ip, 3)
-    oled.text("CPU:" + cpu + " " + cputemp, 4)
+    # print cpu usage and cpu temp and round to 1 decimal place
+    oled.text("CPU:" + str(round(cpu, 1)) + "% " +
+              str(round(cpu_temp, 1)) + "C", 4)
     oled.text(yearprogress, 5)
     sleep(5)
