@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import psutil
 import netifaces as ni
+import requests
 from time import sleep
 from datetime import datetime
 import busio
@@ -16,11 +17,16 @@ while True:
     # get wifi info
     # get ip address
     ip = "not connected"
-    ssid = ""
+    pubIp = ""
 
     try:
         ip = ni.ifaddresses('wlan0')[ni.AF_INET][0]['addr']
-        ssid = ni.ifaddresses('wlan0')[ni.AF_INET][0]['broadcast']
+    except:
+        pass
+
+    try:
+        # get public ip address
+        pubIp = requests.get('https://api.ipify.org').text
     except:
         pass
 
@@ -43,8 +49,8 @@ while True:
 
     # USE oled.text("Hello {}".format(i), 1) function to print out information
     oled.text(stringtime, 1)
-    oled.text(ssid, 2)
-    oled.text("IP:" + ip, 3)
+    oled.text("IP:" + ip, 2)
+    oled.text(pubIp, 3)
     # print cpu usage and cpu temp and round to 1 decimal place
     oled.text("CPU:" + str(round(cpu, 1)) + "% " +
               str(round(cpu_temp, 1)) + "C", 4)
